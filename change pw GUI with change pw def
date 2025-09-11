@@ -1,0 +1,64 @@
+def update_pw():
+    pw1 = pw_txtbox3.value
+    pw2 = pw_txtbox4.value
+    username = pw_txtbox2.value
+    if pw1 == "" or pw2 == "":
+        info("ERROR", "Please enter and confirm your new password")
+    elif pw1 != pw2:
+        info("ERROR", "Not the same password")
+    else:
+        try:
+            query = "UPDATE User SET user_password = ? WHERE user_name = ?"
+            execute_sql(database_file, query, (pw1, username))
+            info("SUCCESS", "You have successfully reset your password")
+            
+            pw_txtbox2.value = ""
+            pw_txtbox3.value = ""
+            pw_txtbox4.value = ""
+            pw_txtbox5.value = ""
+        except sqlite3.Error as e:
+            info("ERROR", "Database error")
+
+
+# update password window
+#
+pw_window = Window(app, title="update password", height=400, bg="white")
+#
+
+
+
+
+pw_exit_box = Box(pw_window, width="fill", align="top")
+pw_exit_button = PushButton(pw_exit_box, text="Back", align="left", command=Close_PW)
+pw_exit_button.bg = "gold"
+
+pw_toptxt = Text(pw_window, text="Enter Your new password", size=20)
+pw_toptxt.bold=99
+pw_toptxt.bg="gold"
+
+pw_box = Box(pw_window, layout="grid")
+
+pw_blanktxt2 = Text(pw_box, text="            ", grid=[1,1])
+pw_txt2 = Text(pw_box, text="Username", align="left", grid=[0,1], size=15)
+pw_txtbox2 = TextBox(pw_box, hide_text=True, grid=[2,1], width=30)
+
+pw_blanktxt3 = Text(pw_box, text="            ", grid=[1,1])
+pw_txt3 = Text(pw_box, text="Enter New Password", align="left", grid=[0,2], size=15)
+pw_txtbox3 = TextBox(pw_box, hide_text=True, grid=[2,2], width=30)
+
+pw_blanktxt4 = Text(pw_box, text="            ", grid=[1,1])
+pw_txt4 = Text(pw_box, text="Confirm New Password", align="left", grid=[0,3], size=15)
+pw_txtbox4 = TextBox(pw_box, hide_text=True, grid=[2,3], width=30)
+
+pw_blanktxt5 = Text(pw_box, text="            ", grid=[1,1])
+pw_txt5 = Text(pw_box, text="Email", align="left", grid=[0,4], size=15)
+pw_txtbox5 = TextBox(pw_box, hide_text=True, grid=[2,4], width=30)
+
+
+pw_button = PushButton(pw_window, text="Reset Password", command = update_pw)
+pw_button.bg="gold"
+#
+
+#
+#
+pw_window.hide() #Hides the window until requested
