@@ -60,3 +60,108 @@ def execute_sql(database, sql_statement, params=()):
         cur.execute(sql_statement, params)
         conn.commit()
     return cur.lastrowid
+###########################################################################################################################################################################################
+
+################################################################################################
+#                   PROGRAM NAME: TOKAFITNESS                                                  #
+#                   FIRST CREATED: 10/10/2025                                                  #
+#                   PROGRAMMER: BRENCIS IE                                                     #
+#                                                                                              #
+################################################################################################
+#                   CHANGE LOG:
+#                   +--------------------------------------------------------------------------+
+#                   | 15/09/2025    V1       DATABASE/LOGIN/SIGNUP CREATED             BIE     |
+#                   | 06/09/2025    V2       DASHBOARD/MAIN MENU CREATED               BIE     |
+#                   |                                                                          |
+#                   +--------------------------------------------------------------------------+
+#
+#
+#from turtle import reset
+from guizero import App, Window, PushButton, Text, Box, TextBox, Picture, info, Combo, CheckBox # Guizero imports to create front end
+
+import sqlite3 # Needed for database
+#
+import os 
+import os.path # OS import to edit system files
+#
+# SQL creation and inserting test data
+#
+sql = """
+CREATE TABLE "User" ( 
+"userID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"user_name" TEXT,
+"user_firstname" TEXT,
+"user_surname" TEXT,
+"user_password" TEXT,
+"user_email" TEXT,
+"u_sub" INTEGER 
+);
+CREATE TABLE "Session" (
+"SessionID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Session_date" TEXT,
+"Session_time" TEXT,
+"Session_type" TEXT,
+"userID"  INTEGER,
+FOREIGN KEY(userID) REFERENCES User(userID)
+);
+CREATE TABLE "Booking" (
+"BookingID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Booking_timeslot" TEXT,
+"Booking_date" TEXT,
+"userID"  INTEGER,
+"TrainerID"  INTEGER,
+FOREIGN KEY(userID) REFERENCES User(userID)
+FOREIGN KEY(TrainerID) REFERENCES Trainer(TrainerID)
+);
+CREATE TABLE "Trainer" (
+"TrainerID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Trainer_Name" TEXT,
+"Trainer_EXP" TEXT,
+"Trainer_Gender" TEXT,
+"Trainer_DOB" TEXT
+);
+insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) values ('UJoe', 'Strummer', 'Joe', 'pw1', 'Joe@gmail.com', '0');
+insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) values ('UBren', 'Brencis', 'Imaz', 'pw21', 'B@gmail.com', '1');
+
+insert into Session (Session_date, Session_time, Session_type, userID) values ('14/09/2025', '17:00', 'Fitness', '1');
+insert into Session (Session_date, Session_time, Session_type, userID) values ('21/09/2025', '19:00', 'Health', '1');
+
+insert into Booking (Booking_timeslot, Booking_date, TrainerID, UserID) values ('7PM', '10/09/2025', '1', '1');
+insert into Booking (Booking_timeslot, Booking_date, TrainerID, UserID) values ('9PM', '10/09/2025', '2', '2');
+
+insert into Trainer (Trainer_Name, Trainer_EXP, Trainer_Gender, Trainer_DOB) values ('James', 'Advanced', 'Male', '15/06/2000');
+insert into Trainer (Trainer_Name, Trainer_EXP, Trainer_Gender, Trainer_DOB) values ('Mia', 'Trainee', 'Female', '27/09/2001');
+
+"""
+#
+#Insert into Booking (Booking_timeslot, Booking_date, )
+# global variables
+#
+database_file = 'GYM.db'
+#
+#
+if os.path.exists(database_file):
+   os.remove(database_file) # Removes database each time program starts for test purposes
+#
+conn = sqlite3.connect(database_file) 
+cursor = conn.cursor()
+cursor.executescript(sql)
+conn.commit() # Initialising SQL integration 
+#
+#
+def query_database(database, query, params=()):
+	# Function to query the database
+    with sqlite3.connect(database) as conn:
+        cur = conn.cursor()
+        cur.execute(query, params)
+        rows = cur.fetchall()
+    return rows
+#
+#
+def execute_sql(database, sql_statement, params=()):
+	# Function to execute SQL statements such as INSERT and DELETE 
+    with sqlite3.connect(database) as conn:
+        cur = conn.cursor()
+        cur.execute(sql_statement, params)
+        conn.commit()
+    return cur.lastrowid
