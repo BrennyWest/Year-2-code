@@ -80,3 +80,21 @@ create_button.bg ="gold"
 #
 #
 sign_window.hide() #Hides the window until requested
+
+
+
+
+
+
+
+-------DEFS-------
+
+
+def Open_Signup():
+    app.hide()
+    sign_window.show()
+#
+#
+def Close_Signup():
+    sign_window.hide()
+    app.show()
