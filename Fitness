@@ -1,0 +1,331 @@
+import sys
+import os
+import sqlite3
+from PySide6.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit,
+    QFormLayout, QMessageBox, QStackedWidget
+)
+from PySide6.QtCore import Qt
+
+# -------------------- DATABASE SETUP -------------------- #
+sql = """
+CREATE TABLE "User" ( 
+"userID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"user_name" TEXT,
+"user_firstname" TEXT,
+"user_surname" TEXT,
+"user_password" TEXT,
+"user_email" TEXT,
+"u_sub" INTEGER 
+);
+CREATE TABLE "Session" (
+"SessionID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Session_date" TEXT,
+"Session_time" TEXT,
+"Session_type" TEXT,
+"userID"  INTEGER,
+FOREIGN KEY(userID) REFERENCES User(userID)
+);
+CREATE TABLE "Booking" (
+"BookingID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Booking_timeslot" TEXT,
+"Booking_date" TEXT,
+"userID"  INTEGER,
+"TrainerID"  INTEGER,
+FOREIGN KEY(userID) REFERENCES User(userID),
+FOREIGN KEY(TrainerID) REFERENCES Trainer(TrainerID)
+);
+CREATE TABLE "Trainer" (
+"TrainerID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Trainer_Name" TEXT,
+"Trainer_EXP" TEXT,
+"Trainer_Gender" TEXT,
+"Trainer_DOB" TEXT
+);
+insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) 
+values ('UJoe', 'Strummer', 'Joe', 'pw1', 'Joe@gmail.com', '0');
+insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) 
+values ('UBren', 'Brencis', 'Imaz', 'pw21', 'B@gmail.com', '1');
+insert into Session (Session_date, Session_time, Session_type, userID) 
+values ('14/09/2025', '17:00', 'Fitness', '1');
+insert into Session (Session_date, Session_time, Session_type, userID) 
+values ('21/09/2025', '19:00', 'Health', '1');
+insert into Booking (Booking_timeslot, Booking_date, TrainerID, UserID) 
+values ('7PM', '10/09/2025', '1', '1');
+insert into Booking (Booking_timeslot, Booking_date, TrainerID, UserID) 
+values ('9PM', '10/09/2025', '2', '2');
+insert into Trainer (Trainer_Name, Trainer_EXP, Trainer_Gender, Trainer_DOB) 
+values ('James', 'Advanced', 'Male', '15/06/2000');
+insert into Trainer (Trainer_Name, Trainer_EXP, Trainer_Gender, Trainer_DOB) 
+values ('Mia', 'Trainee', 'Female', '27/09/2001');
+"""
+
+DB_FILE = "GYM.db"
+if os.path.exists(DB_FILE):
+    os.remove(DB_FILE)
+
+conn = sqlite3.connect(DB_FILE)
+conn.executescript(sql)
+conn.commit()
+conn.close()
+
+
+def query_database(query, params=()):
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute(query, params)
+        return cur.fetchall()
+
+
+def execute_sql(query, params=()):
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute(query, params)
+        conn.commit()
+        return cur.lastrowid
+
+
+# -------------------- MAIN MENU -------------------- #
+class MainMenu(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        self.parent_stack = parent_stack
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        title = QLabel("Welcome to TOKAFITNESS")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+
+        subtitle = QLabel("Please select an option below:")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        btn_login = QPushButton("Login")
+        btn_login.setStyleSheet("background-color: lightblue;")
+        btn_login.clicked.connect(lambda: parent_stack.setCurrentIndex(1))
+
+        btn_signup = QPushButton("Sign Up")
+        btn_signup.setStyleSheet("background-color: lightgreen;")
+        btn_signup.clicked.connect(lambda: parent_stack.setCurrentIndex(2))
+
+        layout.addWidget(title)
+        layout.addWidget(subtitle)
+        layout.addWidget(btn_login)
+        layout.addWidget(btn_signup)
+        self.setLayout(layout)
+
+
+# -------------------- LOGIN WINDOW -------------------- #
+class LoginWindow(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        self.parent_stack = parent_stack
+
+        layout = QVBoxLayout()
+        title = QLabel("Login to your account")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        form = QFormLayout()
+        self.username = QLineEdit()
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+
+        form.addRow("Username:", self.username)
+        form.addRow("Password:", self.password)
+        layout.addLayout(form)
+
+        btn_login = QPushButton("Login")
+        btn_login.setStyleSheet("background-color: lightblue;")
+        btn_login.clicked.connect(self.login_user)
+
+        btn_forgot = QPushButton("Forgot Password?")
+        btn_forgot.setStyleSheet("color: blue; background: none; border: none; text-decoration: underline;")
+        btn_forgot.clicked.connect(lambda: parent_stack.setCurrentIndex(3))
+
+        btn_back = QPushButton("Back")
+        btn_back.setStyleSheet("background-color: gold;")
+        btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(0))
+
+        layout.addWidget(btn_login)
+        layout.addWidget(btn_forgot)
+        layout.addWidget(btn_back)
+        self.setLayout(layout)
+
+    def login_user(self):
+        username = self.username.text().strip()
+        password = self.password.text().strip()
+
+        if not username or not password:
+            QMessageBox.warning(self, "Error", "Please fill in all fields")
+            return
+
+        rows = query_database(
+            "SELECT * FROM User WHERE user_name = ? AND user_password = ?",
+            (username, password)
+        )
+        if not rows:
+            QMessageBox.warning(self, "Error", "Invalid username or password")
+        else:
+            QMessageBox.information(self, "Success", f"Welcome {username}!")
+            self.parent_stack.setCurrentIndex(0)
+
+
+# -------------------- SIGNUP WINDOW -------------------- #
+class SignupWindow(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        self.parent_stack = parent_stack
+
+        layout = QVBoxLayout()
+        title = QLabel("Create your account")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        form = QFormLayout()
+        self.username = QLineEdit()
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.confirm = QLineEdit()
+        self.confirm.setEchoMode(QLineEdit.EchoMode.Password)
+        self.firstname = QLineEdit()
+        self.surname = QLineEdit()
+        self.email = QLineEdit()
+
+        form.addRow("Username:", self.username)
+        form.addRow("Password:", self.password)
+        form.addRow("Confirm Password:", self.confirm)
+        form.addRow("First Name:", self.firstname)
+        form.addRow("Surname:", self.surname)
+        form.addRow("Email:", self.email)
+
+        layout.addLayout(form)
+
+        btn_create = QPushButton("Create Account")
+        btn_create.setStyleSheet("background-color: lightgreen;")
+        btn_create.clicked.connect(self.create_account)
+
+        btn_back = QPushButton("Back")
+        btn_back.setStyleSheet("background-color: gold;")
+        btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(0))
+
+        layout.addWidget(btn_create)
+        layout.addWidget(btn_back)
+        self.setLayout(layout)
+
+    def create_account(self):
+        username = self.username.text().strip()
+        password = self.password.text().strip()
+        confirm = self.confirm.text().strip()
+        firstname = self.firstname.text().strip()
+        surname = self.surname.text().strip()
+        email = self.email.text().strip()
+
+        if not username.isalpha():
+            QMessageBox.warning(self, "Error", "Username cannot contain numbers or symbols")
+            return
+        if not firstname.isalpha():
+            QMessageBox.warning(self, "Error", "First name cannot contain numbers or symbols")
+            return
+        if password != confirm:
+            QMessageBox.warning(self, "Error", "Passwords do not match")
+            return
+        if not all([username, password, firstname, surname, email]):
+            QMessageBox.warning(self, "Error", "Please fill in all fields")
+            return
+
+        try:
+            execute_sql(
+                "INSERT INTO User (user_name, user_firstname, user_surname, user_password, user_email) VALUES (?, ?, ?, ?, ?)",
+                (username, firstname, surname, password, email)
+            )
+            QMessageBox.information(self, "Success", "Account successfully created")
+            self.parent_stack.setCurrentIndex(0)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+
+# -------------------- FORGOT PASSWORD WINDOW -------------------- #
+class ForgotPasswordWindow(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        self.parent_stack = parent_stack
+
+        layout = QVBoxLayout()
+        title = QLabel("Reset Your Password")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        form = QFormLayout()
+        self.username = QLineEdit()
+        self.email = QLineEdit()
+        self.new_pw = QLineEdit()
+        self.new_pw.setEchoMode(QLineEdit.EchoMode.Password)
+        self.confirm_pw = QLineEdit()
+        self.confirm_pw.setEchoMode(QLineEdit.EchoMode.Password)
+
+        form.addRow("Username:", self.username)
+        form.addRow("Email:", self.email)
+        form.addRow("New Password:", self.new_pw)
+        form.addRow("Confirm Password:", self.confirm_pw)
+        layout.addLayout(form)
+
+        btn_reset = QPushButton("Change Password")
+        btn_reset.setStyleSheet("background-color: lightblue;")
+        btn_reset.clicked.connect(self.change_password)
+
+        btn_back = QPushButton("Back")
+        btn_back.setStyleSheet("background-color: gold;")
+        btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(1))
+
+        layout.addWidget(btn_reset)
+        layout.addWidget(btn_back)
+        self.setLayout(layout)
+
+    def change_password(self):
+        username = self.username.text().strip()
+        email = self.email.text().strip()
+        new_pw = self.new_pw.text().strip()
+        confirm_pw = self.confirm_pw.text().strip()
+
+        if not all([username, email, new_pw, confirm_pw]):
+            QMessageBox.warning(self, "Error", "Please fill in all fields")
+            return
+
+        if new_pw != confirm_pw:
+            QMessageBox.warning(self, "Error", "Passwords do not match")
+            return
+
+        rows = query_database("SELECT * FROM User WHERE user_name = ? AND user_email = ?", (username, email))
+        if not rows:
+            QMessageBox.warning(self, "Error", "User not found. Please check your username and email.")
+            return
+
+        execute_sql("UPDATE User SET user_password = ? WHERE user_name = ? AND user_email = ?", (new_pw, username, email))
+        QMessageBox.information(self, "Success", "Password successfully updated!")
+        self.parent_stack.setCurrentIndex(1)
+
+
+# -------------------- MAIN APPLICATION -------------------- #
+class TokafitnessApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("TOKAFITNESS")
+        self.resize(420, 450)
+
+        self.stack = QStackedWidget()
+        self.stack.addWidget(MainMenu(self.stack))         # index 0
+        self.stack.addWidget(LoginWindow(self.stack))      # index 1
+        self.stack.addWidget(SignupWindow(self.stack))     # index 2
+        self.stack.addWidget(ForgotPasswordWindow(self.stack))  # index 3
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.stack)
+        self.setLayout(layout)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = TokafitnessApp()
+    window.show()
+    sys.exit(app.exec())
