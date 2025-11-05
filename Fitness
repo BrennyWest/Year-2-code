@@ -337,39 +337,54 @@ class DashboardWindow(QWidget):
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
+        self.user_is_premium = False  # Default to free membership
 
-        
+        # Advice Button
+        self.btn_Advice = QPushButton("Advice")
+        self.btn_Advice.setStyleSheet("background-color: #A7C7E7;")  # Pastel blue shade
+        self.btn_Advice.clicked.connect(lambda: parent_stack.setCurrentIndex(5))
 
-        btn_Advice = QPushButton("Advice")
-        btn_Advice.setStyleSheet("background-color: #A7C7E7;")  # Pastel blue shade
-        btn_Advice.clicked.connect(lambda: parent_stack.setCurrentIndex(5))
+        # Booking Button
+        self.btn_Booking = QPushButton("Booking")
+        self.btn_Booking.setStyleSheet("background-color: #B3D9FF;")  # Pastel blue shade
+        self.btn_Booking.clicked.connect(lambda: parent_stack.setCurrentIndex(6))
 
-        btn_Booking = QPushButton("Booking")
-        btn_Booking.setStyleSheet("background-color: #B3D9FF;")  # Pastel blue shade
-        btn_Booking.clicked.connect(lambda: parent_stack.setCurrentIndex(6))
+        # Premium Button
+        self.btn_Premium = QPushButton("Premium")
+        self.btn_Premium.setStyleSheet("background-color: gold;")  # Gold color for Premium
+        self.btn_Premium.clicked.connect(lambda: parent_stack.setCurrentIndex(7))
 
-        btn_Premium = QPushButton("Premium")
-        btn_Premium.setStyleSheet("background-color: gold;")  # Gold color for Premium
-        btn_Premium.clicked.connect(lambda: parent_stack.setCurrentIndex(7))
+        # Tracking Button
+        self.btn_Tracking = QPushButton("Tracking")
+        self.btn_Tracking.setStyleSheet("background-color: #C2E2FF;")  # Pastel blue shade
+        self.btn_Tracking.clicked.connect(lambda: parent_stack.setCurrentIndex(8))
 
-        btn_Tracking = QPushButton("Tracking")
-        btn_Tracking.setStyleSheet("background-color: #C2E2FF;")  # Pastel blue shade
-        btn_Tracking.clicked.connect(lambda: parent_stack.setCurrentIndex(8))
+        # Social Button
+        self.btn_Social = QPushButton("Social")
+        self.btn_Social.setStyleSheet("background-color: #D1ECFF;")  # Pastel blue shade
+        self.btn_Social.clicked.connect(lambda: parent_stack.setCurrentIndex(9))
 
-        btn_Social = QPushButton("Social")
-        btn_Social.setStyleSheet("background-color: #D1ECFF;")  # Pastel blue shade
-        btn_Social.clicked.connect(lambda: parent_stack.setCurrentIndex(9))
+        # Settings Button
+        self.btn_Settings = QPushButton("Settings")
+        self.btn_Settings.setStyleSheet("background-color: #E0F5FF;")  # Pastel blue shade
+        self.btn_Settings.clicked.connect(lambda: parent_stack.setCurrentIndex(10))
 
-        btn_Settings = QPushButton("Settings")
-        btn_Settings.setStyleSheet("background-color: #E0F5FF;")  # Pastel blue shade
-        btn_Settings.clicked.connect(lambda: parent_stack.setCurrentIndex(10))
+        # Log Out Button
+        self.btn_LogOut = QPushButton("Log out")
+        self.btn_LogOut.setStyleSheet("background-color: #A7C7E7;")  # Pastel blue shade
+        self.btn_LogOut.clicked.connect(lambda: parent_stack.setCurrentIndex(0))
 
-        btn_LogOut = QPushButton("Log out")
-        btn_LogOut.setStyleSheet("background-color: #A7C7E7;")  # Pastel blue shade
-        btn_LogOut.clicked.connect(lambda: parent_stack.setCurrentIndex(0))
-
+        # Add buttons to layout
         top_layout = QHBoxLayout()
-        for b in [btn_Advice, btn_Booking, btn_Premium, btn_Tracking, btn_Social, btn_Settings, btn_LogOut]:
+        for b in [
+            self.btn_Advice,
+            self.btn_Booking,
+            self.btn_Premium,
+            self.btn_Tracking,
+            self.btn_Social,
+            self.btn_Settings,
+            self.btn_LogOut,
+        ]:
             top_layout.addWidget(b)
 
         self.title = QLabel("WELCOME TO TOKA FITNESS")
@@ -379,7 +394,6 @@ class DashboardWindow(QWidget):
         self.subtitle = QLabel("")
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.subtitle.setStyleSheet("font-size: 14px;")
-
 
         # Add Gym Photo
         self.photo_label = QLabel()
@@ -392,15 +406,42 @@ class DashboardWindow(QWidget):
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(top_layout)
-         # Add the photo to the layout
         main_layout.addWidget(self.title)
         main_layout.addWidget(self.subtitle)
-        main_layout.addWidget(self.photo_label) 
+        main_layout.addWidget(self.photo_label)
         main_layout.addStretch()
         self.setLayout(main_layout)
 
     def update_welcome(self, username):
         self.subtitle.setText(f"Welcome {username}!")
+
+        # Check if the user is premium
+        user_data = query_database("SELECT u_sub FROM User WHERE user_name = ?", (username,))
+        if user_data and user_data[0][0] == 1:
+            self.user_is_premium = True
+        else:
+            self.user_is_premium = False
+
+        # Update button states based on membership
+        self.update_button_states()
+
+    def update_button_states(self):
+        if self.user_is_premium:
+            # Enable all buttons for premium users
+            self.btn_Advice.setEnabled(True)
+            self.btn_Advice.setStyleSheet("background-color: #A7C7E7;")
+            self.btn_Tracking.setEnabled(True)
+            self.btn_Tracking.setStyleSheet("background-color: #C2E2FF;")
+            self.btn_Social.setEnabled(True)
+            self.btn_Social.setStyleSheet("background-color: #D1ECFF;")
+        else:
+            # Lock certain buttons for free users
+            self.btn_Advice.setEnabled(False)
+            self.btn_Advice.setStyleSheet("background-color: grey; color: white;")
+            self.btn_Tracking.setEnabled(False)
+            self.btn_Tracking.setStyleSheet("background-color: grey; color: white;")
+            self.btn_Social.setEnabled(False)
+            self.btn_Social.setStyleSheet("background-color: grey; color: white;")
 
 
 # -------------------- SIMPLE WINDOWS -------------------- #
@@ -414,6 +455,22 @@ class AdviceWindow(QWidget):
         btn_back = QPushButton("Back")
         btn_back.setStyleSheet("background-color: lightblue;")
         btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(4))
+        
+
+
+        image_label = QLabel()
+        pixmap = QPixmap("Advice.png")  # Ensure file exists
+        if not pixmap.isNull():
+            image_label.setPixmap(pixmap.scaled(1000, 400, Qt.AspectRatioMode.KeepAspectRatio))
+            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(image_label)
+        else:
+            print("⚠️ Could not find Advice.png")
+
+
+
+
+        
         layout.addWidget(btn_back)
         self.setLayout(layout)
 
@@ -476,9 +533,6 @@ class BookingWindow(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to confirm booking: {str(e)}")
 
 
-
-
-
 class PremiumWindow(QWidget):
     def __init__(self, parent_stack):
         super().__init__()
@@ -501,8 +555,8 @@ class PremiumWindow(QWidget):
         free_features = [
             ("Access to basic workouts", True),
             ("Personalized advice", False),
-            ("Booking trainers", False),
-            ("Social features", True),
+            ("Booking trainers", True),
+            ("Social features", False),
         ]
 
         for feature, available in free_features:
@@ -553,12 +607,31 @@ class PremiumWindow(QWidget):
         self.setLayout(layout)
 
     def choose_free_membership(self):
-        QMessageBox.information(self, "Membership Selected", "You have chosen the Free Membership.")
+        # Update the user's membership status in the database
+        current_user = self.parent_stack.parentWidget().current_user
+        execute_sql("UPDATE User SET u_sub = 0 WHERE user_name = ?", (current_user,))
+
+        QMessageBox.information(self, "Membership Updated", "You have switched to Free Membership.")
+
+        # Notify the Dashboard to refresh button states
+        dashboard = self.parent_stack.widget(4)
+        dashboard.update_welcome(current_user)
+
         self.parent_stack.setCurrentIndex(4)
 
     def choose_premium_membership(self):
-        QMessageBox.information(self, "Membership Selected", "You have chosen the Premium Membership. Enjoy the benefits!")
+        # Update the user's membership status in the database
+        current_user = self.parent_stack.parentWidget().current_user
+        execute_sql("UPDATE User SET u_sub = 1 WHERE user_name = ?", (current_user,))
+
+        QMessageBox.information(self, "Membership Updated", "You have chosen the Premium Membership. Enjoy the benefits!")
+
+        # Notify the Dashboard to refresh button states
+        dashboard = self.parent_stack.widget(4)
+        dashboard.update_welcome(current_user)
+
         self.parent_stack.setCurrentIndex(4)
+
 
 class TrackingWindow(QWidget):
     def __init__(self, parent_stack):
@@ -599,15 +672,24 @@ class SettingWindow(QWidget):
         title.setStyleSheet("font-size: 18px; font-weight: bold;")
         layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        # Membership Status Label
+        self.membership_label = QLabel("Membership: Loading...")
+        self.membership_label.setStyleSheet("font-size: 16px; font-weight: bold; color: gray;")
+        self.membership_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.membership_label)
+
+        # Dark Mode Toggle Button
         self.toggle_mode_btn = QPushButton("Switch to Dark Mode")
         self.toggle_mode_btn.setStyleSheet("background-color: lightgray;")
         self.toggle_mode_btn.clicked.connect(self.toggle_mode)
         layout.addWidget(self.toggle_mode_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        # Back Button
         btn_back = QPushButton("Back")
         btn_back.setStyleSheet("background-color: lightblue;")
         btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(4))
         layout.addWidget(btn_back, alignment=Qt.AlignmentFlag.AlignCenter)
+
         self.setLayout(layout)
 
     def toggle_mode(self):
