@@ -4,10 +4,10 @@ import sqlite3
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit,
     QFormLayout, QMessageBox, QStackedWidget, QHBoxLayout, QCheckBox,
-    QComboBox, QCalendarWidget, QTimeEdit
+    QComboBox, QCalendarWidget, QTimeEdit, QSlider
 )
 from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QFontDatabase, QFont
 
 # -------------------- DATABASE SETUP -------------------- #
 sql = """
@@ -23,7 +23,7 @@ CREATE TABLE "User" (
 CREATE TABLE "Session" (
 "SessionID" INTEGER PRIMARY KEY AUTOINCREMENT,
 "Session_date" TEXT,
-"Session_time" TEXT,
+"Session_duration" INTEGER,
 "Session_type" TEXT,
 "userID"  INTEGER,
 FOREIGN KEY(userID) REFERENCES User(userID)
@@ -49,10 +49,10 @@ values ('UJoe', 'Strummer', 'Joe', 'pw1', 'Joe@gmail.com', '0');
 insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) 
 values ('UBren', 'Brencis', 'Imaz', 'pw21', 'B@gmail.com', '1');
 
-insert into Session (Session_date, Session_time, Session_type, userID) 
-values ('14/09/2025', '17:00', 'Fitness', '1');
-insert into Session (Session_date, Session_time, Session_type, userID) 
-values ('21/09/2025', '19:00', 'Health', '1');
+insert into Session (Session_date, Session_duration, Session_type, userID) 
+values ('14/09/2025', '60', 'Fitness', '1');
+insert into Session (Session_date, Session_duration, Session_type, userID) 
+values ('21/09/2025', '90', 'Running', '1');
 
 insert into Booking (Booking_timeslot, Booking_date, TrainerID, UserID) 
 values ('7PM', '10/09/2025', '1', '1');
@@ -421,6 +421,7 @@ class DashboardWindow(QWidget):
             self.user_is_premium = True
         else:
             self.user_is_premium = False
+            self.subtitle.setText(f"Enjoy your free content, Subscribe to Premium now for more content!!!")
 
         # Update button states based on membership
         self.update_button_states()
@@ -538,18 +539,26 @@ class PremiumWindow(QWidget):
         super().__init__()
         self.parent_stack = parent_stack
 
-        layout = QVBoxLayout()
+        # Main layout
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
+
+        # Title
         title = QLabel("Premium Membership Options")
-        title.setStyleSheet("font-size: 18px; font-weight: bold;")
-        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-size: 22px; font-weight: bold; color: #333;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(title)
 
-        # Membership comparison layout
-        comparison_layout = QHBoxLayout()
+        # Membership Comparison Section
+        comparison_section = QHBoxLayout()
+        comparison_section.setSpacing(20)
 
-        # Free Membership
+        # Free Membership Section
         free_layout = QVBoxLayout()
         free_title = QLabel("Free Membership")
-        free_title.setStyleSheet("font-size: 16px; font-weight: bold;")
+        free_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
         free_layout.addWidget(free_title, alignment=Qt.AlignmentFlag.AlignCenter)
 
         free_features = [
@@ -561,14 +570,15 @@ class PremiumWindow(QWidget):
 
         for feature, available in free_features:
             feature_label = QLabel(f"{'✔️' if available else '❌'} {feature}")
+            feature_label.setStyleSheet("font-size: 14px; color: #777;")
             free_layout.addWidget(feature_label)
 
-        comparison_layout.addLayout(free_layout)
+        comparison_section.addLayout(free_layout)
 
-        # Premium Membership
+        # Premium Membership Section
         premium_layout = QVBoxLayout()
         premium_title = QLabel("Premium Membership")
-        premium_title.setStyleSheet("font-size: 16px; font-weight: bold; color: gold;")
+        premium_title.setStyleSheet("font-size: 18px; font-weight: bold; color: gold;")
         premium_layout.addWidget(premium_title, alignment=Qt.AlignmentFlag.AlignCenter)
 
         premium_features = [
@@ -580,31 +590,54 @@ class PremiumWindow(QWidget):
 
         for feature, available in premium_features:
             feature_label = QLabel(f"{'✔️' if available else '❌'} {feature}")
+            feature_label.setStyleSheet("font-size: 14px; color: #777;")
             premium_layout.addWidget(feature_label)
 
-        comparison_layout.addLayout(premium_layout)
+        comparison_section.addLayout(premium_layout)
 
-        layout.addLayout(comparison_layout)
+        main_layout.addLayout(comparison_section)
 
-        # Membership selection buttons
+        # Membership Selection Buttons
+        button_section = QHBoxLayout()
+        button_section.setSpacing(20)
+
         btn_free = QPushButton("Choose Free Membership")
-        btn_free.setStyleSheet("background-color: lightblue;")
+        btn_free.setStyleSheet("""
+            background-color: #4CAF50;
+            color: white;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 5px;
+        """)
         btn_free.clicked.connect(self.choose_free_membership)
+        button_section.addWidget(btn_free)
 
         btn_premium = QPushButton("Choose Premium Membership")
-        btn_premium.setStyleSheet("background-color: gold;")
+        btn_premium.setStyleSheet("""
+            background-color: gold;
+            color: black;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 5px;
+        """)
         btn_premium.clicked.connect(self.choose_premium_membership)
+        button_section.addWidget(btn_premium)
 
-        layout.addWidget(btn_free, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(btn_premium, alignment=Qt.AlignmentFlag.AlignCenter)
+        main_layout.addLayout(button_section)
 
-        # Back button
+        # Back Button
         btn_back = QPushButton("Back")
-        btn_back.setStyleSheet("background-color: lightblue;")
+        btn_back.setStyleSheet("""
+            background-color: #4CAF50;
+            color: white;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 5px;
+        """)
         btn_back.clicked.connect(lambda: self.parent_stack.setCurrentIndex(4))
-        layout.addWidget(btn_back, alignment=Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(btn_back, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.setLayout(layout)
+        self.setLayout(main_layout)
 
     def choose_free_membership(self):
         # Update the user's membership status in the database
@@ -665,32 +698,116 @@ class SettingWindow(QWidget):
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
-        self.dark_mode = False  # default light
+        self.dark_mode = False  # Default light mode
+        self.current_font = "Arial"  # Default font
+        self.current_font_size = 12  # Default font size
+        self.is_premium = False  # Default to non-premium
 
-        layout = QVBoxLayout()
+        # Main layout
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
+
+        # Title
         title = QLabel("Settings")
-        title.setStyleSheet("font-size: 18px; font-weight: bold;")
-        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-size: 22px; font-weight: bold; color: #333;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(title)
 
-        # Membership Status Label
+        # Membership Status Section
+        membership_section = QVBoxLayout()
+        membership_section.setSpacing(10)
+
+        membership_label_title = QLabel("Membership Status")
+        membership_label_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
+        membership_section.addWidget(membership_label_title)
+
         self.membership_label = QLabel("Membership: Loading...")
-        self.membership_label.setStyleSheet("font-size: 16px; font-weight: bold; color: gray;")
-        self.membership_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.membership_label)
+        self.membership_label.setStyleSheet("font-size: 16px; color: #777;")
+        self.membership_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        membership_section.addWidget(self.membership_label)
 
-        # Dark Mode Toggle Button
+        main_layout.addLayout(membership_section)
+
+        # Font Settings Section
+        font_section = QVBoxLayout()
+        font_section.setSpacing(10)
+
+        font_label_title = QLabel("Font Settings")
+        font_label_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
+        font_section.addWidget(font_label_title)
+
+        # Font Selection
+        font_label = QLabel("Select Font:")
+        font_label.setStyleSheet("font-size: 14px; color: #555;")
+        font_section.addWidget(font_label)
+
+        self.font_dropdown = QComboBox()
+        self.font_dropdown.addItems(QFontDatabase().families())  # Populate with available fonts
+        self.font_dropdown.setCurrentText(self.current_font)
+        self.font_dropdown.currentTextChanged.connect(self.change_font)
+        font_section.addWidget(self.font_dropdown)
+
+        # Font Size Adjustment
+        font_size_label = QLabel("Adjust Font Size:")
+        font_size_label.setStyleSheet("font-size: 14px; color: #555;")
+        font_section.addWidget(font_size_label)
+
+        self.font_size_slider = QSlider(Qt.Orientation.Horizontal)
+        self.font_size_slider.setRange(8, 32)  # Font size range
+        self.font_size_slider.setValue(self.current_font_size)
+        self.font_size_slider.valueChanged.connect(self.change_font_size)
+        font_section.addWidget(self.font_size_slider)
+
+        main_layout.addLayout(font_section)
+
+        # Appearance Options for Premium Users
+        self.premium_appearance_section = QVBoxLayout()
+        self.premium_appearance_section.setSpacing(10)
+
+        appearance_label_title = QLabel("Appearance Options (Premium Only)")
+        appearance_label_title.setStyleSheet("font-size: 18px; font-weight: bold; color: gold;")
+        self.premium_appearance_section.addWidget(appearance_label_title)
+
+        self.theme_dropdown = QComboBox()
+        self.theme_dropdown.addItems(["Default", "Cool Blue", "Dark Purple", "Vibrant Green"])
+        self.theme_dropdown.currentTextChanged.connect(self.change_theme)
+        self.premium_appearance_section.addWidget(self.theme_dropdown)
+
+        self.premium_appearance_section_widget = QWidget()
+        self.premium_appearance_section_widget.setLayout(self.premium_appearance_section)
+        self.premium_appearance_section_widget.setVisible(False)  # Hidden by default
+        main_layout.addWidget(self.premium_appearance_section_widget)
+
+        # Dark Mode Section
+        dark_mode_section = QVBoxLayout()
+        dark_mode_section.setSpacing(10)
+
+        dark_mode_label_title = QLabel("Appearance")
+        dark_mode_label_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
+        dark_mode_section.addWidget(dark_mode_label_title)
+
         self.toggle_mode_btn = QPushButton("Switch to Dark Mode")
-        self.toggle_mode_btn.setStyleSheet("background-color: lightgray;")
+        self.toggle_mode_btn.setStyleSheet("background-color: #ddd; padding: 8px; border-radius: 5px;")
         self.toggle_mode_btn.clicked.connect(self.toggle_mode)
-        layout.addWidget(self.toggle_mode_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        dark_mode_section.addWidget(self.toggle_mode_btn)
+
+        main_layout.addLayout(dark_mode_section)
 
         # Back Button
         btn_back = QPushButton("Back")
-        btn_back.setStyleSheet("background-color: lightblue;")
+        btn_back.setStyleSheet("""
+            background-color: #4CAF50;
+            color: white;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 5px;
+        """)
         btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(4))
-        layout.addWidget(btn_back, alignment=Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(btn_back, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.setLayout(layout)
+        self.setLayout(main_layout)
 
     def toggle_mode(self):
         self.dark_mode = not self.dark_mode
@@ -744,7 +861,82 @@ class SettingWindow(QWidget):
                 }
             """)
             self.toggle_mode_btn.setText("Switch to Dark Mode")
-            self.toggle_mode_btn.setStyleSheet("background-color: lightgray; color: black;")
+            self.toggle_mode_btn.setStyleSheet("background-color: #ddd; color: black;")
+
+    def change_font(self, font_name):
+        """Change the font of all text in the application."""
+        self.current_font = font_name
+        QApplication.instance().setFont(QFont(self.current_font, self.current_font_size))
+
+    def change_font_size(self, font_size):
+        """Change the font size of all text in the application."""
+        self.current_font_size = font_size
+        QApplication.instance().setFont(QFont(self.current_font, self.current_font_size))
+
+    def change_theme(self, theme_name):
+        """Change the application's theme based on the selected option."""
+        if theme_name == "Cool Blue":
+            QApplication.instance().setStyleSheet("""
+                QWidget {
+                    background-color: #E3F2FD;
+                    color: #0D47A1;
+                }
+                QPushButton {
+                    background-color: #64B5F6;
+                    color: white;
+                    border-radius: 5px;
+                    padding: 8px;
+                }
+                QPushButton:hover {
+                    background-color: #42A5F5;
+                }
+            """)
+        elif theme_name == "Dark Purple":
+            QApplication.instance().setStyleSheet("""
+                QWidget {
+                    background-color: #311B92;
+                    color: #EDE7F6;
+                }
+                QPushButton {
+                    background-color: #673AB7;
+                    color: white;
+                    border-radius: 5px;
+                    padding: 8px;
+                }
+                QPushButton:hover {
+                    background-color: #5E35B1;
+                }
+            """)
+        elif theme_name == "Vibrant Green":
+            QApplication.instance().setStyleSheet("""
+                QWidget {
+                    background-color: #E8F5E9;
+                    color: #1B5E20;
+                }
+                QPushButton {
+                    background-color: #66BB6A;
+                    color: white;
+                    border-radius: 5px;
+                    padding: 8px;
+                }
+                QPushButton:hover {
+                    background-color: #43A047;
+                }
+            """)
+        else:  # Default theme
+            QApplication.instance().setStyleSheet("")
+
+    def update_membership_status(self, username):
+        """Update the membership status label and show Premium options if applicable."""
+        user_data = query_database("SELECT u_sub FROM User WHERE user_name = ?", (username,))
+        if user_data:
+            self.is_premium = user_data[0][0] == 1
+            membership_type = "Premium" if self.is_premium else "Free"
+            self.membership_label.setText(f"Membership: {membership_type}")
+            self.premium_appearance_section_widget.setVisible(self.is_premium)
+        else:
+            self.membership_label.setText("Membership: Unknown")
+            self.premium_appearance_section_widget.setVisible(False)
 
 
 # -------------------- MAIN APPLICATION -------------------- #
@@ -753,6 +945,8 @@ class TokafitnessApp(QWidget):
         super().__init__()
         self.setWindowTitle("TOKAFITNESS")
         self.resize(420, 450)
+
+
 
         self.stack = QStackedWidget()
         self.stack.addWidget(MainMenu(self.stack))          # 0
@@ -767,9 +961,11 @@ class TokafitnessApp(QWidget):
         self.stack.addWidget(SocialWindow(self.stack))      # 9
         self.stack.addWidget(SettingWindow(self.stack))     # 10
 
+
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
+
 
 
 if __name__ == "__main__":
