@@ -8,6 +8,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QPixmap, QFontDatabase, QFont
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 # -------------------- DATABASE SETUP -------------------- #
 sql = """
@@ -669,15 +671,61 @@ class PremiumWindow(QWidget):
 class TrackingWindow(QWidget):
     def __init__(self, parent_stack):
         super().__init__()
+        self.parent_stack = parent_stack
+        self.steps_data = []  # List to store step data
+
         layout = QVBoxLayout()
         title = QLabel("Tracking")
         title.setStyleSheet("font-size: 18px; font-weight: bold;")
         layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Input field for steps
+        self.steps_input = QLineEdit()
+        self.steps_input.setPlaceholderText("Enter the number of steps")
+        layout.addWidget(self.steps_input)
+
+        # Button to add steps
+        btn_add_steps = QPushButton("Add Steps")
+        btn_add_steps.setStyleSheet("background-color: lightgreen;")
+        btn_add_steps.clicked.connect(self.add_steps)
+        layout.addWidget(btn_add_steps)
+
+        # Button to go back
         btn_back = QPushButton("Back")
         btn_back.setStyleSheet("background-color: lightblue;")
         btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(4))
         layout.addWidget(btn_back)
+
+        # Matplotlib canvas for the graph
+        self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+        layout.addWidget(self.canvas)
+
         self.setLayout(layout)
+
+    def add_steps(self):
+        try:
+            steps = int(self.steps_input.text().strip())
+            if steps < 0:
+                QMessageBox.warning(self, "Error", "Steps cannot be negative.")
+                return
+
+            self.steps_data.append(steps)
+            self.update_graph()
+            self.steps_input.clear()
+        except ValueError:
+            QMessageBox.warning(self, "Error", "Please enter a valid number.")
+
+    def update_graph(self):
+        self.figure.clear()
+        ax = self.figure.add_subplot(111)
+        ax.plot(self.steps_data, marker='o', linestyle='-', color='b')
+        ax.set_title("Steps Tracking")
+        ax.set_xlabel("Entry Number")
+        ax.set_ylabel("Steps")
+        ax.grid(True)
+        self.canvas.draw()
+
 
 class SocialWindow(QWidget):
     def __init__(self, parent_stack):
@@ -973,5 +1021,3 @@ if __name__ == "__main__":
     window = TokafitnessApp()
     window.show()
     sys.exit(app.exec())
-
-
