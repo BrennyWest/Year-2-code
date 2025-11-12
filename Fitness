@@ -4,7 +4,7 @@ import sqlite3
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit,
     QFormLayout, QMessageBox, QStackedWidget, QHBoxLayout, QCheckBox,
-    QComboBox, QCalendarWidget, QTimeEdit, QSlider
+    QComboBox, QCalendarWidget, QTimeEdit, QSlider, QTextEdit
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QPixmap, QFontDatabase, QFont
@@ -730,15 +730,60 @@ class TrackingWindow(QWidget):
 class SocialWindow(QWidget):
     def __init__(self, parent_stack):
         super().__init__()
+        self.parent_stack = parent_stack
+
         layout = QVBoxLayout()
-        title = QLabel("Social")
+        title = QLabel("Social Chat")
         title.setStyleSheet("font-size: 18px; font-weight: bold;")
         layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Chat history display
+        self.chat_history = QTextEdit()
+        self.chat_history.setReadOnly(True)  # Make it read-only
+        layout.addWidget(self.chat_history)
+
+        # Input field for user messages
+        self.message_input = QLineEdit()
+        self.message_input.setPlaceholderText("Enter your message here...")
+        layout.addWidget(self.message_input)
+
+        # Send button
+        btn_send = QPushButton("Send")
+        btn_send.setStyleSheet("background-color: lightgreen;")
+        btn_send.clicked.connect(self.send_message)
+        layout.addWidget(btn_send)
+
+        # Back button
         btn_back = QPushButton("Back")
         btn_back.setStyleSheet("background-color: lightblue;")
         btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(4))
         layout.addWidget(btn_back)
+
         self.setLayout(layout)
+
+        # Predefined messages from other users
+        self.predefined_messages = [
+            ("CEO", "Welcome to the gym! Let's stay fit together."),
+            ("MIA", "I love the new yoga classes!"),
+            ("JAMES", "Don't forget to hydrate during your workouts."),
+        ]
+
+        # Simulate predefined messages
+        self.simulate_predefined_messages()
+
+    def simulate_predefined_messages(self):
+        """Simulate messages from predefined users."""
+        for sender, message in self.predefined_messages:
+            self.chat_history.append(f"<b>{sender}:</b> {message}")
+
+    def send_message(self):
+        """Send a message from the user."""
+        user_message = self.message_input.text().strip()
+        if user_message:
+            self.chat_history.append(f"<b>You:</b> {user_message}")
+            self.message_input.clear()
+        else:
+            QMessageBox.warning(self, "Error", "Please enter a message before sending.")
 
 
 # -------------------- SETTINGS WINDOW (with dark mode) -------------------- #
