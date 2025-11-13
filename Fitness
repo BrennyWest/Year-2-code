@@ -310,7 +310,7 @@ class ForgotPasswordWindow(QWidget):
         layout.addWidget(btn_back)
         self.setLayout(layout)
 
-    def change_password(self):
+    def change_password(self):  # Change the password       
         username = self.username.text().strip()
         email = self.email.text().strip()
         new_pw = self.new_pw.text().strip()
@@ -521,17 +521,35 @@ class BookingWindow(QWidget):
         selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
         selected_time = self.time_input.time().toString("HH:mm")
 
+        # Combine date and time for validation
+        selected_datetime = QDate.fromString(selected_date, "yyyy-MM-dd").toString("yyyy-MM-dd") + " " + selected_time
+        current_datetime = QDate.currentDate().toString("yyyy-MM-dd") + " " + QTimeEdit().time().toString("HH:mm")
+
         try:
+            # Check if the selected date and time are in the past
+            if QDate.fromString(selected_date, "yyyy-MM-dd") < QDate.currentDate():
+                QMessageBox.warning(self, "Error", "You cannot book in the past.")
+                return
+
+            # Check if the user already has a booking with the same trainer, date, and time
             user_id = query_database(
                 "SELECT userID FROM User WHERE user_name = ?",
                 (self.parent_stack.parentWidget().current_user,)
             )[0][0]
+            existing_booking = query_database(
+                "SELECT * FROM Booking WHERE Booking_date = ? AND Booking_timeslot = ? AND TrainerID = ? AND userID = ?",
+                (selected_date, selected_time, trainer_id, user_id)
+            )
+            if existing_booking:
+                QMessageBox.warning(self, "Error", "You already have a booking with this trainer at the selected time.")
+                return
+
+            # Insert the booking into the database
             execute_sql(
                 "INSERT INTO Booking (Booking_timeslot, Booking_date, TrainerID, userID) VALUES (?, ?, ?, ?)",
                 (selected_time, selected_date, trainer_id, user_id)
             )
-            due_date = QDate.fromString(selected_date, "yyyy-MM-dd").addDays(7).toString("yyyy-MM-dd")
-            QMessageBox.information(self, "Success", f"Booking confirmed! Your due date is {due_date}.")
+            QMessageBox.information(self, "Success", "Booking confirmed!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to confirm booking: {str(e)}")
 
