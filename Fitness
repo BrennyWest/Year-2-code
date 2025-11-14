@@ -1,19 +1,20 @@
+# These are all of the imports 
 import sys
 import os
 import sqlite3
-from PySide6.QtWidgets import (
+from PySide6.QtWidgets import ( # This is for the GUI components
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit,
     QFormLayout, QMessageBox, QStackedWidget, QHBoxLayout, QCheckBox,
     QComboBox, QCalendarWidget, QTimeEdit, QSlider, QTextEdit
 )
-from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QPixmap, QFontDatabase, QFont
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PySide6.QtCore import Qt, QDate # This is for the date picker
+from PySide6.QtGui import QPixmap, QFontDatabase, QFont # This is for the images and fonts
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas # This is for the matplotlib graph
 from matplotlib.figure import Figure
 
 # -------------------- DATABASE SETUP -------------------- #
 sql = """
-CREATE TABLE "User" ( 
+CREATE TABLE "User" (  
 "userID" INTEGER PRIMARY KEY AUTOINCREMENT,
 "user_name" TEXT,
 "user_firstname" TEXT,
@@ -76,13 +77,13 @@ conn.executescript(sql)
 conn.commit()
 conn.close()
 
-def query_database(query, params=()):
+def query_database(query, params=()): # Function to query the database
     with sqlite3.connect(DB_FILE) as conn:
         cur = conn.cursor()
         cur.execute(query, params)
         return cur.fetchall()
 
-def execute_sql(query, params=()):
+def execute_sql(query, params=()): # Function to execute SQL commands
     with sqlite3.connect(DB_FILE) as conn:
         cur = conn.cursor()
         cur.execute(query, params)
@@ -91,7 +92,7 @@ def execute_sql(query, params=()):
 
 
 # -------------------- MAIN MENU -------------------- #
-class MainMenu(QWidget):
+class MainMenu(QWidget):    # Main menu window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -131,7 +132,7 @@ class MainMenu(QWidget):
 
 
 # -------------------- SIGNUP WINDOW -------------------- #
-class SignupWindow(QWidget):
+class SignupWindow(QWidget): # Signup window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -172,7 +173,7 @@ class SignupWindow(QWidget):
         layout.addWidget(btn_back)
         self.setLayout(layout)
 
-    def create_account(self):
+    def create_account(self): # Create a new user account
         username = self.username.text().strip()
         password = self.password.text().strip()
         confirm = self.confirm.text().strip()
@@ -205,7 +206,7 @@ class SignupWindow(QWidget):
 
 
 # -------------------- LOGIN WINDOW -------------------- #
-class LoginWindow(QWidget):
+class LoginWindow(QWidget): # Login window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -246,7 +247,7 @@ class LoginWindow(QWidget):
         layout.addWidget(btn_forgot)
         self.setLayout(layout)
 
-    def login_user(self):
+    def login_user(self): # Login the user
         username = self.username.text().strip()
         password = self.password.text().strip()
 
@@ -274,7 +275,7 @@ class LoginWindow(QWidget):
 
 
 # -------------------- FORGOT PASSWORD WINDOW -------------------- #
-class ForgotPasswordWindow(QWidget):
+class ForgotPasswordWindow(QWidget): # Forgot password window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -335,7 +336,7 @@ class ForgotPasswordWindow(QWidget):
 
 
 # -------------------- DASHBOARD WINDOW -------------------- #
-class DashboardWindow(QWidget):
+class DashboardWindow(QWidget): # Dashboard window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -414,7 +415,7 @@ class DashboardWindow(QWidget):
         main_layout.addStretch()
         self.setLayout(main_layout)
 
-    def update_welcome(self, username):
+    def update_welcome(self, username): # Update welcome message and button states
         self.subtitle.setText(f"Welcome {username}!")
 
         # Check if the user is premium
@@ -428,7 +429,7 @@ class DashboardWindow(QWidget):
         # Update button states based on membership
         self.update_button_states()
 
-    def update_button_states(self):
+    def update_button_states(self): # Update button states based on membership
         if self.user_is_premium:
             # Enable all buttons for premium users
             self.btn_Advice.setEnabled(True)
@@ -448,7 +449,7 @@ class DashboardWindow(QWidget):
 
 
 # -------------------- SIMPLE WINDOWS -------------------- #
-class AdviceWindow(QWidget):
+class AdviceWindow(QWidget): # Advice window
     def __init__(self, parent_stack):
         super().__init__()
         layout = QVBoxLayout()
@@ -478,7 +479,7 @@ class AdviceWindow(QWidget):
         self.setLayout(layout)
 
 
-class BookingWindow(QWidget):
+class BookingWindow(QWidget): # Booking window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -516,7 +517,7 @@ class BookingWindow(QWidget):
 
         self.setLayout(layout)
 
-    def confirm_booking(self):
+    def confirm_booking(self): # Confirm the booking
         trainer_id = self.trainer_dropdown.currentData()
         selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
         selected_time = self.time_input.time().toString("HH:mm")
@@ -554,7 +555,7 @@ class BookingWindow(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to confirm booking: {str(e)}")
 
 
-class PremiumWindow(QWidget):
+class PremiumWindow(QWidget): # Premium membership window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -659,7 +660,7 @@ class PremiumWindow(QWidget):
 
         self.setLayout(main_layout)
 
-    def choose_free_membership(self):
+    def choose_free_membership(self): # Choose free membership
         # Update the user's membership status in the database
         current_user = self.parent_stack.parentWidget().current_user
         execute_sql("UPDATE User SET u_sub = 0 WHERE user_name = ?", (current_user,))
@@ -686,7 +687,7 @@ class PremiumWindow(QWidget):
         self.parent_stack.setCurrentIndex(4)
 
 
-class TrackingWindow(QWidget):
+class TrackingWindow(QWidget): # Tracking window with matplotlib graph
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -721,7 +722,7 @@ class TrackingWindow(QWidget):
 
         self.setLayout(layout)
 
-    def add_steps(self):
+    def add_steps(self): # Add steps to the tracking data
         try:
             steps = int(self.steps_input.text().strip())
             if steps < 0:
@@ -745,7 +746,7 @@ class TrackingWindow(QWidget):
         self.canvas.draw()
 
 
-class SocialWindow(QWidget):
+class SocialWindow(QWidget): # Social chat window
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -805,7 +806,7 @@ class SocialWindow(QWidget):
 
 
 # -------------------- SETTINGS WINDOW (with dark mode) -------------------- #
-class SettingWindow(QWidget):
+class SettingWindow(QWidget): # Settings window with dark mode and font options
     def __init__(self, parent_stack):
         super().__init__()
         self.parent_stack = parent_stack
@@ -920,7 +921,7 @@ class SettingWindow(QWidget):
 
         self.setLayout(main_layout)
 
-    def toggle_mode(self):
+    def toggle_mode(self): #    Toggle between dark and light mode
         self.dark_mode = not self.dark_mode
 
         if self.dark_mode:
@@ -974,17 +975,17 @@ class SettingWindow(QWidget):
             self.toggle_mode_btn.setText("Switch to Dark Mode")
             self.toggle_mode_btn.setStyleSheet("background-color: #ddd; color: black;")
 
-    def change_font(self, font_name):
+    def change_font(self, font_name): # Change the font of the application
         """Change the font of all text in the application."""
         self.current_font = font_name
         QApplication.instance().setFont(QFont(self.current_font, self.current_font_size))
 
-    def change_font_size(self, font_size):
+    def change_font_size(self, font_size): # Change the font size of the application
         """Change the font size of all text in the application."""
         self.current_font_size = font_size
         QApplication.instance().setFont(QFont(self.current_font, self.current_font_size))
 
-    def change_theme(self, theme_name):
+    def change_theme(self, theme_name): # Change the theme of the application
         """Change the application's theme based on the selected option."""
         if theme_name == "Cool Blue":
             QApplication.instance().setStyleSheet("""
@@ -1037,7 +1038,7 @@ class SettingWindow(QWidget):
         else:  # Default theme
             QApplication.instance().setStyleSheet("")
 
-    def update_membership_status(self, username):
+    def update_membership_status(self, username): # Update membership status and show premium options
         """Update the membership status label and show Premium options if applicable."""
         user_data = query_database("SELECT u_sub FROM User WHERE user_name = ?", (username,))
         if user_data:
@@ -1051,8 +1052,8 @@ class SettingWindow(QWidget):
 
 
 # -------------------- MAIN APPLICATION -------------------- #
-class TokafitnessApp(QWidget):
-    def __init__(self):
+class TokafitnessApp(QWidget): # Main application class
+    def __init__(self):     # Initialise the main application
         super().__init__()
         self.setWindowTitle("TOKAFITNESS")
         self.resize(420, 450)
@@ -1079,7 +1080,7 @@ class TokafitnessApp(QWidget):
 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # Run the application
     app = QApplication(sys.argv)
     window = TokafitnessApp()
     window.show()
