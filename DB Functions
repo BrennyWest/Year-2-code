@@ -1,0 +1,12 @@
+def query_database(query, params=()):
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute(query, params)
+        return cur.fetchall()
+
+def execute_sql(query, params=()):
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute(query, params)
+        conn.commit()
+        return cur.lastrowid
