@@ -1,0 +1,11 @@
+def update_membership_status(self, username):
+    """Update the membership status label and show Premium options if applicable."""
+    user_data = query_database("SELECT u_sub FROM User WHERE user_name = ?", (username,))
+    if user_data:
+        self.is_premium = user_data[0][0] == 1
+        membership_type = "Premium" if self.is_premium else "Free"
+        self.membership_label.setText(f"Membership: {membership_type}")
+        self.premium_appearance_section_widget.setVisible(self.is_premium)
+    else:
+        self.membership_label.setText("Membership: Unknown")
+        self.premium_appearance_section_widget.setVisible(False)
