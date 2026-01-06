@@ -1,0 +1,38 @@
+# -------------------- MAIN MENU -------------------- #
+class MainMenu(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        self.parent_stack = parent_stack
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # --- Add the image ---
+        image_label = QLabel()
+        pixmap = QPixmap("TokaImage.png")  # Ensure file exists
+        if not pixmap.isNull():
+            image_label.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
+            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(image_label)
+        else:
+            print("⚠️ Could not find TokaImage.png")
+
+        title = QLabel("Welcome to TOKAFITNESS")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+
+        subtitle = QLabel("Please select an option below:")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        btn_login = QPushButton("Login")
+        btn_login.setStyleSheet("background-color: lightblue;")
+        btn_login.clicked.connect(lambda: parent_stack.setCurrentIndex(1))
+
+        btn_signup = QPushButton("Sign Up")
+        btn_signup.setStyleSheet("background-color: lightgreen;")
+        btn_signup.clicked.connect(lambda: parent_stack.setCurrentIndex(2))
+
+        layout.addWidget(title)
+        layout.addWidget(subtitle)
+        layout.addWidget(btn_login)
+        layout.addWidget(btn_signup)
+        self.setLayout(layout)
