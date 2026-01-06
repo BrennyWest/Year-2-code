@@ -1,0 +1,28 @@
+class AdviceWindow(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        layout = QVBoxLayout()
+        title = QLabel("Advice")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+        btn_back = QPushButton("Back")
+        btn_back.setStyleSheet("background-color: lightblue;")
+        btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(4))
+        
+
+
+        image_label = QLabel()
+        pixmap = QPixmap("Advice.png")  # Ensure file exists
+        if not pixmap.isNull():
+            image_label.setPixmap(pixmap.scaled(1000, 400, Qt.AspectRatioMode.KeepAspectRatio))
+            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(image_label)
+        else:
+            print("⚠️ Could not find Advice.png")
+
+
+
+
+        
+        layout.addWidget(btn_back)
+        self.setLayout(layout)
