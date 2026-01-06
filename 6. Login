@@ -1,0 +1,67 @@
+# -------------------- LOGIN WINDOW -------------------- #
+class LoginWindow(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        self.parent_stack = parent_stack
+
+        layout = QVBoxLayout()
+        title = QLabel("Login to your account")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        form = QFormLayout()
+        self.username = QLineEdit()
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        form.addRow("Username:", self.username)
+        form.addRow("Password:", self.password)
+        layout.addLayout(form)
+
+        self.cookies_box = QCheckBox("I accept cookies")
+        self.terms_box = QCheckBox("I accept the Terms & Conditions")
+
+        layout.addWidget(self.cookies_box)
+        layout.addWidget(self.terms_box)
+
+        btn_login = QPushButton("Login")
+        btn_login.setStyleSheet("background-color: lightblue;")
+        btn_login.clicked.connect(self.login_user)
+
+        btn_back = QPushButton("Back")
+        btn_back.setStyleSheet("background-color: lightblue;")
+        btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(0))
+
+        btn_forgot = QPushButton("Forgot Password?")
+        btn_forgot.setStyleSheet("color: blue; background: none; border: none; text-decoration: underline;")
+        btn_forgot.clicked.connect(lambda: parent_stack.setCurrentIndex(3))
+
+        layout.addWidget(btn_login)
+        layout.addWidget(btn_back)
+        layout.addWidget(btn_forgot)
+        self.setLayout(layout)
+
+    def login_user(self):
+        username = self.username.text().strip()
+        password = self.password.text().strip()
+
+        if not self.cookies_box.isChecked() or not self.terms_box.isChecked():
+            QMessageBox.warning(self, "Error", "You must accept cookies and the Terms & Conditions to continue.")
+            return
+
+        if not username or not password:
+            QMessageBox.warning(self, "Error", "Please fill in all fields")
+            return
+
+        rows = query_database(
+            "SELECT * FROM User WHERE user_name = ? AND user_password = ?",
+            (username, password)
+        )
+        if not rows:
+            QMessageBox.warning(self, "Error", "Invalid username or password")
+        else:
+            QMessageBox.information(self, "Success", f"Welcome {username}!")
+            main_window = self.parent_stack.parentWidget()
+            main_window.current_user = username
+            dashboard = self.parent_stack.widget(4)
+            dashboard.update_welcome(username)
+            self.parent_stack.setCurrentIndex(4)
