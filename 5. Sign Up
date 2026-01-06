@@ -1,0 +1,72 @@
+# -------------------- SIGNUP WINDOW -------------------- #
+class SignupWindow(QWidget):
+    def __init__(self, parent_stack):
+        super().__init__()
+        self.parent_stack = parent_stack
+
+        layout = QVBoxLayout()
+        title = QLabel("Create your account")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        form = QFormLayout()
+        self.username = QLineEdit()
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.confirm = QLineEdit()
+        self.confirm.setEchoMode(QLineEdit.EchoMode.Password)
+        self.firstname = QLineEdit()
+        self.surname = QLineEdit()
+        self.email = QLineEdit()
+
+        form.addRow("Username:", self.username)
+        form.addRow("Password:", self.password)
+        form.addRow("Confirm Password:", self.confirm)
+        form.addRow("First Name:", self.firstname)
+        form.addRow("Surname:", self.surname)
+        form.addRow("Email:", self.email)
+
+        layout.addLayout(form)
+
+        btn_create = QPushButton("Create Account")
+        btn_create.setStyleSheet("background-color: lightgreen;")
+        btn_create.clicked.connect(self.create_account)
+
+        btn_back = QPushButton("Back")
+        btn_back.setStyleSheet("background-color: lightblue;")
+        btn_back.clicked.connect(lambda: parent_stack.setCurrentIndex(0))
+
+        layout.addWidget(btn_create)
+        layout.addWidget(btn_back)
+        self.setLayout(layout)
+
+    def create_account(self):
+        username = self.username.text().strip()
+        password = self.password.text().strip()
+        confirm = self.confirm.text().strip()
+        firstname = self.firstname.text().strip()
+        surname = self.surname.text().strip()
+        email = self.email.text().strip()
+
+        if not username.isalpha():
+            QMessageBox.warning(self, "Error", "Username cannot contain numbers or symbols")
+            return
+        if not firstname.isalpha():
+            QMessageBox.warning(self, "Error", "First name cannot contain numbers or symbols")
+            return
+        if password != confirm:
+            QMessageBox.warning(self, "Error", "Passwords do not match")
+            return
+        if not all([username, password, firstname, surname, email]):
+            QMessageBox.warning(self, "Error", "Please fill in all fields")
+            return
+
+        try:
+            execute_sql(
+                "INSERT INTO User (user_name, user_firstname, user_surname, user_password, user_email) VALUES (?, ?, ?, ?, ?)",
+                (username, firstname, surname, password, email)
+            )
+            QMessageBox.information(self, "Success", "Account successfully created")
+            self.parent_stack.setCurrentIndex(0)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
