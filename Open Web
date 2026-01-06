@@ -1,0 +1,40 @@
+#Import Libraries
+import webbrowser   # this library is used for opening websites in a browser
+
+#Program Title
+print("\n**********************************")
+print("*********  My Chatbot ************")
+print("**********************************\n")
+
+
+
+#Begin Chat with User
+print ("Hello, how are you today?")   # print() statement outputs to the user
+reply = input()                       # input() takes data input from the user
+
+#Add more chat here - using print() and input() statements
+
+
+
+#Food Menu
+print("\nChoose one of the following types of food\n")
+
+print("1) Burgers")
+print("2) Chicken")
+print("3) Noodles")
+#
+# extend menu options e.g. pizza,
+#
+# maybe ask them where? e.g. Portsmouth, Waterlooville'
+#
+#
+choice = input("Enter your choice 1-3: ")
+
+if choice == "1":
+    webbrowser.open("https://www.mcdonalds.com/gb/en-gb.html")
+elif choice =="2":
+    webbrowser.open("https://www.kfc.co.uk/")
+elif choice == "3":
+    webbrowser.open("https://www.wagamama.com/restaurants/fareham/whiteley-fareham")
+else:
+    print("Invalid choice - Goodbye!")
