@@ -1,0 +1,79 @@
+# These are all of the imports 
+import sys
+import os
+import sqlite3
+from PySide6.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit,
+    QFormLayout, QMessageBox, QStackedWidget, QHBoxLayout, QCheckBox,
+    QComboBox, QCalendarWidget, QTimeEdit, QSlider, QTextEdit
+)
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QPixmap, QFontDatabase, QFont
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+# -------------------- DATABASE SETUP -------------------- #
+sql = """
+CREATE TABLE "User" ( 
+"userID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"user_name" TEXT,
+"user_firstname" TEXT,
+"user_surname" TEXT,
+"user_password" TEXT,
+"user_email" TEXT,
+"u_sub" INTEGER 
+);
+CREATE TABLE "Session" (
+"SessionID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Session_date" TEXT,
+"Session_duration" INTEGER,
+"Session_type" TEXT,
+"userID"  INTEGER,
+FOREIGN KEY(userID) REFERENCES User(userID)
+);
+CREATE TABLE "Booking" (
+"BookingID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Booking_timeslot" TEXT,
+"Booking_date" TEXT,
+"userID"  INTEGER,
+"TrainerID"  INTEGER,
+FOREIGN KEY(userID) REFERENCES User(userID),
+FOREIGN KEY(TrainerID) REFERENCES Trainer(TrainerID)
+);
+CREATE TABLE "Trainer" (
+"TrainerID" INTEGER PRIMARY KEY AUTOINCREMENT,
+"Trainer_Name" TEXT,
+"Trainer_EXP" TEXT,
+"Trainer_Gender" TEXT,
+"Trainer_DOB" TEXT
+);
+insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) 
+values ('B1', 'West', 'Patrick', 'pw1', 'Patrick@gmail.com', '0');
+insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) 
+values ('UBren', 'Brencis', 'Imaz', 'pw21', 'B@gmail.com', '1');
+
+insert into Session (Session_date, Session_duration, Session_type, userID) 
+values ('14/09/2025', '60', 'Fitness', '1');
+insert into Session (Session_date, Session_duration, Session_type, userID) 
+values ('21/09/2025', '90', 'Running', '1');
+
+insert into Booking (Booking_timeslot, Booking_date, TrainerID, UserID) 
+values ('7PM', '10/09/2025', '1', '1');
+insert into Booking (Booking_timeslot, Booking_date, TrainerID, UserID) 
+values ('9PM', '10/09/2025', '2', '2');
+
+insert into Trainer (Trainer_Name, Trainer_EXP, Trainer_Gender, Trainer_DOB) 
+values ('James', 'Advanced', 'Male', '15/06/2000');
+insert into Trainer (Trainer_Name, Trainer_EXP, Trainer_Gender, Trainer_DOB) 
+values ('Mia', 'Trainee', 'Female', '27/09/2001');
+"""
+
+DB_FILE = "GYM.db"
+if os.path.exists(DB_FILE):
+    os.remove(DB_FILE)
+
+conn = sqlite3.connect(DB_FILE)
+conn.executescript(sql)
+conn.commit()
+conn.close()
+
