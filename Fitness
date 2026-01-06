@@ -48,7 +48,7 @@ CREATE TABLE "Trainer" (
 "Trainer_DOB" TEXT
 );
 insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) 
-values ('UJoe', 'Strummer', 'Joe', 'pw1', 'Joe@gmail.com', '0');
+values ('B1', 'West', 'Patrick', 'pw1', 'Patrick@gmail.com', '0');
 insert into User (user_name, user_firstname, user_surname, user_password, user_email, u_sub) 
 values ('UBren', 'Brencis', 'Imaz', 'pw21', 'B@gmail.com', '1');
 
