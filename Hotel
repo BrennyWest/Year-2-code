@@ -1,0 +1,33 @@
+# -------------------- FUNCTION TO COUNT BOOKINGS -------------------- #
+
+def count_bookings(room_id, check_date):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    query = """
+    SELECT COUNT(*)
+    FROM Booking
+    WHERE RoomID = ?
+    AND date(?) BETWEEN date(Book_date_from) AND date(Book_date_to);
+    """
+
+    cursor.execute(query, (room_id, check_date))
+    count = cursor.fetchone()[0]
+
+    conn.close()
+    return count
+
+
+# -------------------- TESTING -------------------- #
+
+room_id = 1
+date_to_check = "2026-02-12"
+
+num_bookings = count_bookings(room_id, date_to_check)
+
+print(f"Bookings for Room {room_id} on {date_to_check}: {num_bookings}")
+
+if num_bookings == 0:
+    print("Room is available ✅")
+else:
+    print("Room is NOT available ❌")
