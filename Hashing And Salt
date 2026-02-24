@@ -1,0 +1,23 @@
+import bcrypt
+
+def hashpw(plaintextpassword):
+    return bcrypt.hashpw(plaintextpassword.encode("utf-8"), bcrypt.gensalt(12)).decode()
+
+def checkpw(plaintextpassword, hashedpw):
+    return bcrypt.checkpw(plaintextpassword.encode("utf-8"), hashedpw.encode("utf-8"))
+
+
+plainpw = input("Password: ")
+print(plainpw)
+
+hashed = hashpw(plainpw)
+print(hashed)
+
+plainpw1 = input("Password: ")
+print(plainpw1)
+
+
+if checkpw(plainpw1, hashed):
+    print("correct password")
+else:
+    print("Incorrect")
